@@ -1923,6 +1923,8 @@ the specific language governing permissions and limitations under the Apache Lic
         // single
 
         createContainer: function () {
+            var header = this.opts.formatDropdownHeader();
+            var footer = this.opts.formatDropdownFooter();
             var container = $(document.createElement("div")).attr({
                 "class": "select2-container"
             }).html([
@@ -1933,6 +1935,7 @@ the specific language governing permissions and limitations under the Apache Lic
                 "<label for='' class='select2-offscreen'></label>",
                 "<input class='select2-focusser select2-offscreen' type='text' aria-haspopup='true' role='button' />",
                 "<div class='select2-drop select2-display-none'>",
+                    header,
                 "   <div class='select2-search'>",
                 "       <label for='' class='select2-offscreen'></label>",
                 "       <input type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' class='select2-input' role='combobox' aria-expanded='true'",
@@ -1940,6 +1943,7 @@ the specific language governing permissions and limitations under the Apache Lic
                 "   </div>",
                 "   <ul class='select2-results' role='listbox'>",
                 "   </ul>",
+                    footer,
                 "</div>"].join(""));
             return container;
         },
@@ -2540,6 +2544,8 @@ the specific language governing permissions and limitations under the Apache Lic
 
         // multi
         createContainer: function () {
+            var header = this.opts.formatDropdownHeader();
+            var footer = this.opts.formatDropdownFooter();
             var container = $(document.createElement("div")).attr({
                 "class": "select2-container select2-container-multi"
             }).html([
@@ -2550,8 +2556,10 @@ the specific language governing permissions and limitations under the Apache Lic
                 "  </li>",
                 "</ul>",
                 "<div class='select2-drop select2-drop-multi select2-display-none'>",
+                    header,
                 "   <ul class='select2-results'>",
                 "   </ul>",
+                    footer,
                 "</div>"].join(""));
             return container;
         },
@@ -2611,6 +2619,16 @@ the specific language governing permissions and limitations under the Apache Lic
                 };
             }
 
+            if(!opts.formatDropdownHeader() && opts.allowSelectAllNone){
+                opts.formatDropdownHeader = function(){
+                    return ["<ul class='select2-all-none'>",
+                            "    <li class='select2-all'>All</li>",
+                            "    <li class='select2-none'>None</li>",
+                            "</ul>"
+                           ].join("");
+                };
+            }
+
             return opts;
         },
 
@@ -2631,6 +2649,32 @@ the specific language governing permissions and limitations under the Apache Lic
                     this.opts.element.trigger("choice-selected", choice);
                 }
             }
+        },
+
+        //multi
+        selectAllChoices: function () {
+            var _this = this;
+            var data = [];
+
+            this.findHighlightableChoices().each(function () {
+                var dataItem = $(this).data("select2-data");
+                data.push(dataItem);
+            });
+
+            $.each(data, function (index, value) {
+                _this.onSelect(value);
+            });
+        },
+
+        //multi
+        deselectAllChoices: function () {
+            var _this = this;
+
+            this.selection.find('.select2-search-choice').each(function () {
+                _this.unselect($(this));
+            });
+
+            this.close();
         },
 
         // multi
@@ -2674,6 +2718,14 @@ the specific language governing permissions and limitations under the Apache Lic
                     this.open();
                 }
             }));
+
+            this.dropdown.on("click", ".select2-all", function () {
+                _this.selectAllChoices();
+            });
+
+            this.dropdown.on("click", ".select2-none", function () {
+                _this.deselectAllChoices();
+            });
 
             this.search.attr("tabindex", this.elementTabIndex);
 
@@ -3414,6 +3466,9 @@ the specific language governing permissions and limitations under the Apache Lic
         formatSelectionTooBig: function (limit) { return "You can only select " + limit + " item" + (limit == 1 ? "" : "s"); },
         formatLoadMore: function (pageNumber) { return "Loading more results…"; },
         formatSearching: function () { return "Searching…"; },
+        formatDropdownHeader: function () { return undefined; },
+        formatDropdownFooter: function () { return undefined; },
+        allowSelectAllNone: false,
         minimumResultsForSearch: 0,
         minimumInputLength: 0,
         maximumInputLength: null,
