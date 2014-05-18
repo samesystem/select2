@@ -2654,27 +2654,44 @@ the specific language governing permissions and limitations under the Apache Lic
         //multi
         selectAllChoices: function () {
             var _this = this;
-            var data = [];
 
-            this.findHighlightableChoices().each(function () {
-                var dataItem = $(this).data("select2-data");
-                data.push(dataItem);
-            });
+            if (_this.opts.ajax) {
+              _this.search.addClass("select2-active");
+              var params = {filter: {}};
+              var filter = $(_this.opts.element).data('filter');
+              if (filter) params.filter = filter;
+              $.getJSON(_this.opts.ajax.url, params, function(data) {
+                  _this.search.removeClass("select2-active");
+                  _this.data(data, true);
+                  _this.close();
+              });
 
-            $.each(data, function (index, value) {
-                _this.onSelect(value);
-            });
+            } else {
+                var data = [];
+                this.findHighlightableChoices().each(function () {
+                    var dataItem = $(this).data("select2-data");
+                    data.push(dataItem);
+                });
+                $.each(data, function (index, value) {
+                    _this.onSelect(value);
+                });
+            }
         },
 
         //multi
         deselectAllChoices: function () {
             var _this = this;
 
-            this.selection.find('.select2-search-choice').each(function () {
-                _this.unselect($(this));
-            });
+            if (_this.opts.ajax) {
+                _this.data('', true);
 
-            this.close();
+            } else {
+                _this.selection.find('.select2-search-choice').each(function () {
+                    _this.unselect($(this));
+                });
+            }
+
+            _this.close();
         },
 
         // multi
