@@ -3406,7 +3406,7 @@ the specific language governing permissions and limitations under the Apache Lic
             while((index = indexOf(this.id(data), val)) >= 0) {
                 val.splice(index, 1);
                 this.setVal(val);
-                if (this.select) this.postprocessResults();
+                if (this.select || !this.opts.closeOnSelect) this.postprocessResults();
             }
 
             selected.remove();
@@ -3430,6 +3430,10 @@ the specific language governing permissions and limitations under the Apache Lic
                     choice.addClass("select2-selected");
                     // mark all children of the selected parent as selected
                     choice.find(".select2-result-selectable").addClass("select2-selected");
+                } else if (choice.hasClass("select2-selected")) {
+                  // Remi, fix issue: hidden result on unselect choice
+                  choice.removeClass("select2-selected");
+                  choice.find(".select2-result-selectable").removeClass("select2-selected");
                 }
             });
 
